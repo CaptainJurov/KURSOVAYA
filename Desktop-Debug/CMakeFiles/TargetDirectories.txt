@@ -1,0 +1,9 @@
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/CURSACHE.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/edit_cache.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/rebuild_cache.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/list_install_components.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/install.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/install/local.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/install/strip.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/CURSACHE_autogen_timestamp_deps.dir
+/home/frogget/MyLife/CURSACHE/build/Desktop-Debug/CMakeFiles/CURSACHE_autogen.dir
