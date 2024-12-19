@@ -27,15 +27,43 @@ public:
     virtual void move() = 0;
 };
 
+class AMovStrategy {
+public:
+    virtual ~AMovStrategy() = default;
+    virtual Point calculateDelta(const Point& currentPosition) = 0;
+};
+
+class LinearMov : public AMovStrategy {
+private:
+    Point offset;
+public:
+    LinearMov(Point offset): offset(offset) {}
+    Point calculateDelta(const Point& cur_po) override {
+        return Point(cur_po.x+offset.x, cur_po.y+offset.y);
+    }
+};
+
+class SinMovement : public AMovStrategy {
+private:
+    int counter;
+    float phase;
+    Point offset;
+public:
+    SinMovement(float phase, Point offset): offset(offset), phase(phase), counter(0) {}
+    Point calculateDelta(const Point& cur_po) override {
+        counter++;
+        return Point(Point(cur_po.x+offset.x-3.*sin(float(counter)/phase), cur_po.y+offset.y));
+    }
+};
+
 class DrawInteractor: public AInteractor {
 public:
-    Point offset;
     Joint* model;
     QColor color;
-    float phase;
-    int counter = 0;
-    DrawInteractor(QColor color, Point offset, Point coords, float phase = 15., std::stack<float> type = snow): phase(phase), offset(offset) {
+    AMovStrategy* movementStrategy;
+    DrawInteractor(QColor color, Point coords, AMovStrategy* strategy, std::stack<float> type = snow) {
         this->color = color;
+        this->movementStrategy = strategy;
         model = new Joint(type, Point(coords.x, coords.y));
     }
     void draw(QPainter& paint) override {
@@ -45,7 +73,7 @@ public:
             paint.setPen(QColor(0, 0, 0, 0));
             paint.setBrush(color);
             Point first(ptr->getPoint().x-ptr->getR(), ptr->getPoint().y-ptr->getR());
-            paint.drawEllipse(ptr->getPoint().x, ptr->getPoint().y, ptr->getR()*2, ptr->getR()*2);
+            paint.drawEllipse(ptr->getPoint().x, ptr->getPoint().y, ptr->getR()*2., ptr->getR()*2.);
             if (ptr->next==nullptr) {break;}
             else ptr = ptr->next;
             c++;
@@ -55,12 +83,11 @@ public:
         return model->getPoint();
     }
     void move() override {
-        counter++;
-        Point dir(Point(model->getPoint().x+offset.x-3*sin(counter/phase), model->getPoint().y+offset.y));
-        if (model->getPoint().y>w_size.y) {dir = Point(model->getPoint().x, 0);}
-        else if (model->getPoint().x+model->getR()*2>=w_size.x) {dir = Point(model->getPoint().x+50*(rand()%12), model->getPoint().y);}
-        else if (model->getPoint().x+model->getR()*2<=0) {dir = Point(w_size.x-50*(rand()%12), 0);}
-        else if (model->getPoint().y+model->getR()<=0) {dir = Point(model->getPoint().x, w_size.y);}
+        Point dir = movementStrategy->calculateDelta(model->getPoint());
+        if (model->getPoint().y > w_size.y) { dir = Point(model->getPoint().x, 0); }
+        if (model->getPoint().x + model->getR() * 2 >= w_size.x) { dir = Point(model->getPoint().x + 50 * (rand() % 12), model->getPoint().y); }
+        if (model->getPoint().x + model->getR() * 2 <= 0) { dir = Point(w_size.x - 50 * (rand() % 12), 0); }
+        if (model->getPoint().y + model->getR() <= 0) { dir = Point(model->getPoint().x, w_size.y); }
         model->move(dir);
     }
 };
@@ -126,7 +153,11 @@ public:
     int currentTick;
 
     SceneManager() : activeSceneIndex(0), currentTick(0) {}
-
+    ~SceneManager() {
+        for (auto i: Scenes) {
+            delete i;
+        }
+    }
     void addScene(Scene* scene, int duration) {
         Scenes.push_back(scene);
         sceneDurations.push_back(duration);
@@ -152,9 +183,16 @@ public:
 };
 
 class SceneConstructor {
+private:
+    Scene* scene;
 public:
-    SceneConstructor() {}
-    static Layer* createWorm(int count, float width, int len=1, QColor color = QColor(255, 255,255)) {
+    SceneConstructor() {
+        scene = new Scene();
+    }
+    ~SceneConstructor() {
+    }
+    void createSinWorm(int count, float width, int len=1, QColor color = QColor(255,255,255)) {
+
         auto result = new Layer();
         std::stack<float> type;
         type.push(0.);
@@ -162,23 +200,37 @@ public:
             type.push(width);
         }
         for (int i=0;i<count;i++) {
-            result->addInteractor(new DrawInteractor(color, Point(-rand()%30/30., rand()%110/100.+1), Point(rand()%int(w_size.x), rand()%int(w_size.y)), rand()%30+15, type));
+            Point offset(-rand()%30/30., rand()%110/100.+1);
+            result->addInteractor(new DrawInteractor(color, Point(rand()%int(w_size.x), rand()%int(w_size.y)), new SinMovement(rand()%30+15, offset), type));
         }
-        return result;
+        scene->addLayer(result);
     }
-    static Layer* createRoad() {
+    void createLinWorm(int count, float width, int len=1, QColor color = QColor(255,255,255)) {
+        auto result = new Layer();
+        std::stack<float> type;
+        type.push(0.);
+        for (int i=0;i<len;i++) {
+            type.push(width);
+        }
+        for (int i=0;i<count;i++) {
+            Point offset(-rand()%30/30., rand()%110/100.+1);
+            result->addInteractor(new DrawInteractor(color, Point(rand()%int(w_size.x), rand()%int(w_size.y)), new LinearMov(offset), type));
+        }
+        scene->addLayer(result);
+    }
+    void createRoad() {
         auto result = new Layer();
         for (int i=0;i<2;i++) {
             result->addInteractor(new ImageInteractor(Point(i*w_size.x, w_size.y-200), Point(-4., 0.), dir+"road.png", Point(w_size.x, 200)));
         }
-        return result;
+        scene->addLayer(result);
     }
-    static Layer* createBiker() {
+    void createBiker() {
         auto result = new Layer();
         result->addInteractor(new ImageInteractor(Point(100, w_size.y-300), Point(0, 0.), dir+"biker.png", Point(200, 200)));
-        return result;
+        scene->addLayer(result);
     }
-    static Layer* createBuilds(Point size, float speed, int y=350) {
+    void createBuilds(Point size, float speed, int y=350) {
         auto result = new Layer();
         int count = w_size.x/size.x;
         for (int i=0;i<count;i++) {
@@ -186,27 +238,27 @@ public:
             result->addInteractor(new ImageInteractor(Point(i*(w_size.x/(count-1)), y), Point(speed, 0.), dir+"build"+QString().number(rand()%3+1)+".png", size));
             }
         }
-        return result;
+        scene->addLayer(result);
     }
-    static Layer* createBack() {
+    void createBack() {
         auto result = new Layer();
         for (int i=0;i<2;i++) {
             result->addInteractor(new ImageInteractor(Point(i*w_size.x, 100), Point(-1., 0.), dir+"back.png", Point(w_size.x, 500)));
         }
-        return result;
+        scene->addLayer(result);
     }
-    static Layer* createBackMain(QString name = "backmain.png") {
+    void createBackMain(QString name = "backmain.png") {
         auto result = new Layer();
         result->addInteractor(new ImageInteractor(Point(0, 0), Point(0, 0.), dir+name, Point(w_size.x, w_size.y)));
-        return result;
+        scene->addLayer(result);
     }
-    static Layer* createBirds() {
+    void createBirds() {
         auto result = new Layer();
         result->addInteractor(new ImageInteractor(Point(0, 0), Point(0, 0.), dir+"backmain.png", Point(w_size.x, w_size.y)));
-        return result;
+        scene->addLayer(result);
     }
+    Scene* getScene() {return scene;}
 };
-
 SceneManager* SM;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -221,46 +273,49 @@ MainWindow::MainWindow(QWidget *parent)
     for(auto i: worm_form_2) snow.push(i);
 
     SM = new SceneManager();
-    auto scene1 = new Scene();
-    scene1->addLayer(SceneConstructor::createBackMain());
-    scene1->addLayer(SceneConstructor::createBack());;
-    scene1->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    scene1->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    scene1->addLayer(SceneConstructor::createRoad());
-    scene1->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene1, 500);
-
-    auto scene2 = new Scene();
-    scene2->addLayer(SceneConstructor::createBackMain("backm.png"));
-    scene2->addLayer(SceneConstructor::createWorm(15, 2, 2, QColor(255, 148, 26)));
-    scene2->addLayer(SceneConstructor::createBack());;
-    scene2->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    scene2->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    scene2->addLayer(SceneConstructor::createRoad());
-    scene2->addLayer(SceneConstructor::createWorm(15, 4, 2, QColor(255, 148, 26)));
-    scene2->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene2, 500);
-    auto scene3 = new Scene();
-    scene3->addLayer(SceneConstructor::createBackMain("backm2.png"));
-    scene3->addLayer(SceneConstructor::createBack());
-    scene3->addLayer(SceneConstructor::createWorm(50, 1));
-    scene3->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    scene3->addLayer(SceneConstructor::createWorm(50, 2));
-    scene3->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    scene3->addLayer(SceneConstructor::createRoad());
-    scene3->addLayer(SceneConstructor::createWorm(25, 3));
-    scene3->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene3, 500);
-    auto scene4 = new Scene();
-    scene4->addLayer(SceneConstructor::createBackMain("backm3.png"));
-    scene4->addLayer(SceneConstructor::createWorm(25, 2, 3, QColor(249, 130, 152)));
-    scene4->addLayer(SceneConstructor::createBack());;
-    scene4->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    scene4->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    scene4->addLayer(SceneConstructor::createRoad());
-    scene4->addLayer(SceneConstructor::createWorm(10, 3, 3, QColor(249, 130, 152)));
-    scene4->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene4, 500);
+    SceneConstructor* SC = new SceneConstructor();
+    SC->createBackMain();
+    SC->createBack();
+    SC->createBuilds(Point(200, 200), -1., 300);
+    SC->createBuilds( Point(100, 300), -2., 350);
+    SC->createRoad();
+    SC->createBiker();
+    SM->addScene(SC->getScene(), 500);
+    delete SC;
+    SC = new SceneConstructor();
+    SC->createBackMain("backm.png");
+    SC->createSinWorm(15, 2, 2, QColor(255, 148, 26));
+    SC->createBack();;
+    SC->createBuilds( Point(200, 200), -1., 300);
+    SC->createBuilds( Point(100, 300), -2., 350);
+    SC->createRoad();
+    SC->createSinWorm(15, 4, 2, QColor(255, 148, 26));
+    SC->createBiker();
+    SM->addScene(SC->getScene(), 500);
+    delete SC;
+    SC = new SceneConstructor();
+    SC->createBackMain("backm2.png");
+    SC->createBack();
+    SC->createLinWorm(50, 1);
+    SC->createBuilds( Point(200, 200), -1., 300);
+    SC->createLinWorm(50, 2);
+    SC->createBuilds( Point(100, 300), -2., 350);
+    SC->createRoad();
+    SC->createLinWorm(25, 3);
+    SC->createBiker();
+    SM->addScene(SC->getScene(), 500);
+    delete SC;
+    SC = new SceneConstructor();
+    SC->createBackMain("backm3.png");
+    SC->createSinWorm(25, 2, 3, QColor(249, 130, 152));
+    SC->createBack();
+    SC->createBuilds( Point(200, 200), -1., 300);
+    SC->createBuilds( Point(100, 300), -2., 350);
+    SC->createRoad();
+    SC->createSinWorm(10, 3, 3, QColor(249, 130, 152));
+    SC->createBiker();
+    SM->addScene(SC->getScene(), 500);
+    delete SC;
 }
 MainWindow::~MainWindow()
 {

@@ -34,7 +34,7 @@ void Joint::checkPart(Joint& part) {
     Point delta(point.x - part.point.x, point.y - part.point.y);
     float distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
 
-    if (distance > part.radius + 2) {
+    if (distance > part.radius) {
         float normal_x = (delta.x / distance);
         float normal_y = (delta.y / distance);
         Point mvdelta(point.x - part.radius * normal_x, point.y - part.radius * normal_y);
