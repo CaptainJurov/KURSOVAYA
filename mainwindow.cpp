@@ -16,8 +16,6 @@ std::stack<float> snow;
 
 Point w_size(800, 800);
 
-
-
 class AInteractor {
 protected:
     AInteractor() {};
@@ -259,75 +257,97 @@ public:
     }
     Scene* getScene() {return scene;}
 };
-SceneManager* SM;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    tmr = new QTimer();
-    tmr->setInterval(15);
-    connect(tmr, SIGNAL(timeout()), this, SLOT(updateTime()));
-    tmr->start();
     for(auto i: worm_form) worm.push(i);
     for(auto i: worm_form_2) snow.push(i);
-
-    SM = new SceneManager();
-    SceneConstructor* SC = new SceneConstructor();
-    SC->createBackMain();
-    SC->createBack();
-    SC->createBuilds(Point(200, 200), -1., 300);
-    SC->createBuilds( Point(100, 300), -2., 350);
-    SC->createRoad();
-    SC->createBiker();
-    SM->addScene(SC->getScene(), 500);
-    delete SC;
-    SC = new SceneConstructor();
-    SC->createBackMain("backm.png");
-    SC->createSinWorm(15, 2, 2, QColor(255, 148, 26));
-    SC->createBack();;
-    SC->createBuilds( Point(200, 200), -1., 300);
-    SC->createBuilds( Point(100, 300), -2., 350);
-    SC->createRoad();
-    SC->createSinWorm(15, 4, 2, QColor(255, 148, 26));
-    SC->createBiker();
-    SM->addScene(SC->getScene(), 500);
-    delete SC;
-    SC = new SceneConstructor();
-    SC->createBackMain("backm2.png");
-    SC->createBack();
-    SC->createLinWorm(50, 1);
-    SC->createBuilds( Point(200, 200), -1., 300);
-    SC->createLinWorm(50, 2);
-    SC->createBuilds( Point(100, 300), -2., 350);
-    SC->createRoad();
-    SC->createLinWorm(25, 3);
-    SC->createBiker();
-    SM->addScene(SC->getScene(), 500);
-    delete SC;
-    SC = new SceneConstructor();
-    SC->createBackMain("backm3.png");
-    SC->createSinWorm(25, 2, 3, QColor(249, 130, 152));
-    SC->createBack();
-    SC->createBuilds( Point(200, 200), -1., 300);
-    SC->createBuilds( Point(100, 300), -2., 350);
-    SC->createRoad();
-    SC->createSinWorm(10, 3, 3, QColor(249, 130, 152));
-    SC->createBiker();
-    SM->addScene(SC->getScene(), 500);
-    delete SC;
 }
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
-void MainWindow::updateTime()
+class Window {
+private:
+    SceneManager* SM;
+    QLabel* label;
+    QTimer* tmr;
+public:
+    void update() {
+        QPixmap map(w_size.x, w_size.y);
+        map.fill(QColor(30, 165, 255));
+        QPainter paint(&map);
+        SM->update(paint);
+        label->setPixmap(map);
+    }
+    ~Window() {
+        delete SM;
+        delete label;
+        delete tmr;
+    }
+    Window(int count) {
+        QMainWindow* s = new QMainWindow();
+        label = new QLabel(s);
+        label->resize(w_size.x, w_size.y);
+        s->resize(w_size.x, w_size.y);
+        SM = new SceneManager();
+        SceneConstructor* SC = new SceneConstructor();
+        SC->createBackMain();
+        SC->createBack();
+        SC->createBuilds(Point(200, 200), -1., 300);
+        SC->createBuilds( Point(100, 300), -2., 350);
+        SC->createRoad();
+        SC->createBiker();
+        SM->addScene(SC->getScene(), 500);
+        delete SC;
+        SC = new SceneConstructor();
+        SC->createBackMain("backm.png");
+        SC->createSinWorm(15, 2, 2, QColor(255, 148, 26));
+        SC->createBack();;
+        SC->createBuilds( Point(200, 200), -1., 300);
+        SC->createBuilds( Point(100, 300), -2., 350);
+        SC->createRoad();
+        SC->createSinWorm(15, 4, 2, QColor(255, 148, 26));
+        SC->createBiker();
+        SM->addScene(SC->getScene(), 500);
+        delete SC;
+        SC = new SceneConstructor();
+        SC->createBackMain("backm2.png");
+        SC->createBack();
+        SC->createLinWorm(50, 1);
+        SC->createBuilds( Point(200, 200), -1., 300);
+        SC->createLinWorm(50, 2);
+        SC->createBuilds( Point(100, 300), -2., 350);
+        SC->createRoad();
+        SC->createLinWorm(25, 3);
+        SC->createBiker();
+        SM->addScene(SC->getScene(), 500);
+        delete SC;
+        SC = new SceneConstructor();
+        SC->createBackMain("backm3.png");
+        SC->createSinWorm(25, 2, 3, QColor(249, 130, 152));
+        SC->createBack();
+        SC->createBuilds( Point(200, 200), -1., 300);
+        SC->createBuilds( Point(100, 300), -2., 350);
+        SC->createRoad();
+        SC->createSinWorm(10, 3, 3, QColor(249, 130, 152));
+        SC->createBiker();
+        SM->addScene(SC->getScene(), 500);
+        delete SC;
+        tmr = new QTimer(s);
+        tmr->setInterval(count);
+        QObject::connect(tmr, &QTimer::timeout, [this]() { this->update(); });
+        s->show();
+        tmr->start();
+    }
+};
+
+void MainWindow::on_pushButton_clicked()
 {
-    QPixmap map(w_size.x, w_size.y);
-    map.fill(QColor(30, 165, 255));
-    QPainter paint(&map);
-    SM->update(paint);
-    ui->label->setPixmap(map);
+    Window* w = new Window(15);
 }
 

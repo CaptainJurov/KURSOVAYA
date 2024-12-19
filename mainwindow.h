@@ -20,11 +20,13 @@ public:
     ~MainWindow();
 
 private slots:
-    void updateTime();
+    //void updateTime();
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
-    QTimer *tmr;
+    //QTimer *tmr;
 };
 
 #endif // MAINWINDOW_H

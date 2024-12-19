@@ -20,48 +20,27 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>0</x>
       <y>0</y>
-      <width>171</width>
-      <height>31</height>
+      <width>800</width>
+      <height>800</height>
      </rect>
     </property>
     <property name="text">
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>40</y>
-      <width>781</width>
-      <height>711</height>
+      <x>50</x>
+      <y>0</y>
+      <width>80</width>
+      <height>25</height>
      </rect>
     </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-      <horstretch>1</horstretch>
-      <verstretch>1</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>781</width>
-      <height>711</height>
-     </size>
-    </property>
-    <property name="sizeIncrement">
-     <size>
-      <width>10</width>
-      <height>10</height>
-     </size>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::LeftToRight</enum>
-    </property>
     <property name="text">
-     <string/>
+     <string>PushButton</string>
     </property>
    </widget>
   </widget>
