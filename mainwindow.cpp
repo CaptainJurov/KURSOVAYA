@@ -13,7 +13,7 @@ std::vector<float> worm_form = {2., 4., 5., 6., 7., 8., 9., 10., 11., 13., 15., 
 std::stack<float> worm;
 std::vector<float> worm_form_2 = {0., 5.};
 std::stack<float> snow;
-int T = 0;
+
 Point w_size(800, 800);
 
 
@@ -221,15 +221,15 @@ MainWindow::MainWindow(QWidget *parent)
     for(auto i: worm_form_2) snow.push(i);
 
     SM = new SceneManager();
-    auto scene3 = new Scene();
-    scene3->addLayer(SceneConstructor::createBackMain());
-    scene3->addLayer(SceneConstructor::createBack());;
-    scene3->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    scene3->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    scene3->addLayer(SceneConstructor::createRoad());
-    scene3->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene3, 100);
-    auto scene = new Scene();
+    auto scene1 = new Scene();
+    scene1->addLayer(SceneConstructor::createBackMain());
+    scene1->addLayer(SceneConstructor::createBack());;
+    scene1->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
+    scene1->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
+    scene1->addLayer(SceneConstructor::createRoad());
+    scene1->addLayer(SceneConstructor::createBiker());
+    SM->addScene(scene1, 500);
+
     auto scene2 = new Scene();
     scene2->addLayer(SceneConstructor::createBackMain("backm.png"));
     scene2->addLayer(SceneConstructor::createWorm(15, 2, 2, QColor(255, 148, 26)));
@@ -239,17 +239,18 @@ MainWindow::MainWindow(QWidget *parent)
     scene2->addLayer(SceneConstructor::createRoad());
     scene2->addLayer(SceneConstructor::createWorm(15, 4, 2, QColor(255, 148, 26)));
     scene2->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene2, 100);
-    scene->addLayer(SceneConstructor::createBackMain("backm2.png"));
-    scene->addLayer(SceneConstructor::createBack());
-    scene->addLayer(SceneConstructor::createWorm(50, 1));
-    scene->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    scene->addLayer(SceneConstructor::createWorm(50, 2));
-    scene->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    scene->addLayer(SceneConstructor::createRoad());
-    scene->addLayer(SceneConstructor::createWorm(25, 3));
-    scene->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene, 100);
+    SM->addScene(scene2, 500);
+    auto scene3 = new Scene();
+    scene3->addLayer(SceneConstructor::createBackMain("backm2.png"));
+    scene3->addLayer(SceneConstructor::createBack());
+    scene3->addLayer(SceneConstructor::createWorm(50, 1));
+    scene3->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
+    scene3->addLayer(SceneConstructor::createWorm(50, 2));
+    scene3->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
+    scene3->addLayer(SceneConstructor::createRoad());
+    scene3->addLayer(SceneConstructor::createWorm(25, 3));
+    scene3->addLayer(SceneConstructor::createBiker());
+    SM->addScene(scene3, 500);
     auto scene4 = new Scene();
     scene4->addLayer(SceneConstructor::createBackMain("backm3.png"));
     scene4->addLayer(SceneConstructor::createWorm(25, 2, 3, QColor(249, 130, 152)));
@@ -259,18 +260,7 @@ MainWindow::MainWindow(QWidget *parent)
     scene4->addLayer(SceneConstructor::createRoad());
     scene4->addLayer(SceneConstructor::createWorm(10, 3, 3, QColor(249, 130, 152)));
     scene4->addLayer(SceneConstructor::createBiker());
-    SM->addScene(scene4, 100);
-    // auto scene5 = new Scene();
-    // scene5->addLayer(SceneConstructor::createBackMain());
-    // scene5->addLayer(SceneConstructor::createWorm(5, 5, 20, QColor(58, 255, 74)));
-    // scene5->addLayer(SceneConstructor::createBack());;
-    // scene5->addLayer(SceneConstructor::createBuilds( Point(200, 200), -1., 300));
-    // scene5->addLayer(SceneConstructor::createBuilds( Point(100, 300), -2., 350));
-    // scene5->addLayer(SceneConstructor::createRoad());
-    // scene5->addLayer(SceneConstructor::createWorm(5, 10, 20, QColor(58, 255, 74)));
-    // SM->addScene(scene5, 1000);
-
-
+    SM->addScene(scene4, 500);
 }
 MainWindow::~MainWindow()
 {
@@ -279,16 +269,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::updateTime()
 {
-    T++;
     QPixmap map(w_size.x, w_size.y);
     map.fill(QColor(30, 165, 255));
-    //auto Image = QImage("/home/frogget/Изображения/ptica.jpg");
-    //auto Image = QImage(dir+"build.png");
-    //Image = Image.scaled(w_size.x, w_size.y);
     QPainter paint(&map);
-    //paint.drawImage(0,0,Image);
     SM->update(paint);
-    ui->label->setText(QString().number(SM->activeSceneIndex));
-    ui->label_2->setPixmap(map);
+    ui->label->setPixmap(map);
 }
 
