@@ -82,10 +82,10 @@ public:
     }
     void move() override {
         Point dir = movementStrategy->calculateDelta(model->getPoint());
-        if (model->getPoint().y > w_size.y) { dir = Point(model->getPoint().x, 0); }
-        if (model->getPoint().x + model->getR() * 2 >= w_size.x) { dir = Point(model->getPoint().x + 50 * (rand() % 12), model->getPoint().y); }
-        if (model->getPoint().x + model->getR() * 2 <= 0) { dir = Point(w_size.x - 50 * (rand() % 12), 0); }
-        if (model->getPoint().y + model->getR() <= 0) { dir = Point(model->getPoint().x, w_size.y); }
+        if (model->getPoint().y - model->getR() * 2 * model->size() > w_size.y) { dir = Point(model->getPoint().x, 0); }
+        if (model->getPoint().x - model->getR() * 2 * model->size() >= w_size.x) { dir = Point(0, model->getPoint().y); }
+        if (model->getPoint().x + model->getR() * 2 * model->size() <= 0) { dir = Point(w_size.x - 50 * (rand() % 12), 0); }
+        if (model->getPoint().y + model->getR() * 2 * model->size() <= 0) { dir = Point(model->getPoint().x, w_size.y); }
         model->move(dir);
     }
 };
@@ -250,9 +250,17 @@ public:
         result->addInteractor(new ImageInteractor(Point(0, 0), Point(0, 0.), dir+name, Point(w_size.x, w_size.y)));
         scene->addLayer(result);
     }
-    void createBirds() {
+    void createBirds(int len, int width, int count, Point offset, int y_coord=0, Point b_offset = Point(5, 5)) {
         auto result = new Layer();
-        result->addInteractor(new ImageInteractor(Point(0, 0), Point(0, 0.), dir+"backmain.png", Point(w_size.x, w_size.y)));
+        std::stack<float> type;
+        type.push(0.);
+        for (int i=0;i<len;i++) {
+            type.push(width);
+        }
+        for (int i=0;i<count;i++) {
+            Point coord((i<count/2?b_offset.x*i:(count/2*b_offset.x)-b_offset.x*(i-count/2)), y_coord+i*b_offset.y);
+            result->addInteractor(new DrawInteractor(QColor(100, 100, 100), coord, new LinearMov(offset), type));
+        }
         scene->addLayer(result);
     }
     Scene* getScene() {return scene;}
@@ -299,7 +307,7 @@ public:
         SC->createBackMain();
         SC->createBack();
         SC->createBuilds(Point(200, 200), -1., 300);
-        SC->createBuilds( Point(100, 300), -2., 350);
+        SC->createBuilds(Point(100, 300), -2., 350);
         SC->createRoad();
         SC->createBiker();
         SM->addScene(SC->getScene(), 500);
@@ -308,11 +316,12 @@ public:
         SC->createBackMain("backm.png");
         SC->createSinWorm(15, 2, 2, QColor(255, 148, 26));
         SC->createBack();;
+        SC->createBirds(2, 5, 10, Point(1, 0), 50, Point(13, 13));
         SC->createBuilds( Point(200, 200), -1., 300);
         SC->createBuilds( Point(100, 300), -2., 350);
         SC->createRoad();
-        SC->createSinWorm(15, 4, 2, QColor(255, 148, 26));
         SC->createBiker();
+        SC->createSinWorm(15, 4, 2, QColor(255, 148, 26));
         SM->addScene(SC->getScene(), 500);
         delete SC;
         SC = new SceneConstructor();
@@ -323,8 +332,8 @@ public:
         SC->createLinWorm(50, 2);
         SC->createBuilds( Point(100, 300), -2., 350);
         SC->createRoad();
-        SC->createLinWorm(25, 3);
         SC->createBiker();
+        SC->createLinWorm(25, 3);
         SM->addScene(SC->getScene(), 500);
         delete SC;
         SC = new SceneConstructor();
@@ -334,8 +343,8 @@ public:
         SC->createBuilds( Point(200, 200), -1., 300);
         SC->createBuilds( Point(100, 300), -2., 350);
         SC->createRoad();
-        SC->createSinWorm(10, 3, 3, QColor(249, 130, 152));
         SC->createBiker();
+        SC->createSinWorm(10, 3, 3, QColor(249, 130, 152));
         SM->addScene(SC->getScene(), 500);
         delete SC;
         tmr = new QTimer(s);
@@ -348,6 +357,10 @@ public:
 
 void MainWindow::on_pushButton_clicked()
 {
-    Window* w = new Window(15);
+    Window* ws = new Window(ui->horizontalSlider->sliderPosition());
 }
 
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    ui->label->setText(QString().number(ui->horizontalSlider->sliderPosition())+" мс.");
+}

@@ -26,6 +26,7 @@ public:
     void move(Point coords);
     void checkPart(Joint& part);
 
+    int size();
     Point getPoint();
     float getR();
 

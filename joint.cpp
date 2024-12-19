@@ -45,7 +45,15 @@ void Joint::checkPart(Joint& part) {
 Point Joint::getPoint() {
     return point;
 }
-
+int Joint::size() {
+    auto buf = this->next;
+    int counter = 1;
+    while(buf!=nullptr) {
+        buf = buf->next;
+        counter++;
+    }
+    return counter;
+}
 float Joint::getR() {
     return radius;
 }
